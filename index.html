@@ -1,0 +1,170 @@
+<!doctype html>
+<meta charset="UTF-8"> 
+<html>
+<head>
+	<title>Juntando os Pontos</title>
+	<script type="text/javascript" src="https://visjs.github.io/vis-network/standalone/umd/vis-network.min.js"></script>
+</head>
+
+<body>
+	
+	<style>
+		
+		.full-window {
+			position: absolute;
+			top: 1px;
+			bottom: 1px;
+			left: 1px;
+			right: 1px;
+		}
+		
+		.container-flex {
+			display: -ms-flexbox;
+			display: -webkit-flex;
+			display: flex;
+			-webkit-flex-direction: row;
+			-ms-flex-direction: row;
+			flex-direction: row;
+			-webkit-flex-wrap: nowrap;
+			-ms-flex-wrap: nowrap;
+			flex-wrap: nowrap;
+			-webkit-justify-content: center;
+			-ms-flex-pack: center;
+			justify-content: center;
+			-webkit-align-content: stretch;
+			-ms-flex-line-pack: stretch;
+			align-content: stretch;
+			-webkit-align-items: center;
+			-ms-flex-align: center;
+			align-items: center;
+		}
+		
+		.container-interno {
+			margin: 5px;
+		}
+		
+		.input-number {
+			text-align: right;
+		}
+		
+		.input-button {	
+		}
+		
+	</style>
+	
+	<div class="container-flex full-window">
+		<div class="container-interno">
+			Número de Pontos:<br/>
+			<input id="txtNumeroPontos" type="text" class="input-number"><p/>
+			Número de Ligações Possíveis:<br/>
+			N * (N - 1) / 2<br/>
+			<input id="txtNumeroLigacoesPossiveis" type="text" readonly="true" class="input-number"><p/>
+			Número de Padrões Possíveis:<br/>
+			N ^ LP<br/>
+			<input id="txtNumeroPadroesPossiveis" type="text" readonly="true" class="input-number"><p/>
+			<input type="submit" value="Atualizar" onclick="atualizarNetwork()">
+		</div>
+		<div id="mynetwork" class="container-interno" style="width: 600px; height: 400px; border: 1px solid lightgray;"></div>
+	</div>
+ 	
+	
+	<script type="text/javascript">
+		
+		const NUMERO_INICIAL = 4;
+		
+		var numeroPontos = NUMERO_INICIAL;
+		
+		function numeroPadroesPossiveis() {
+			return Math.pow(2, numeroLigacoesPossiveis());
+		}
+		
+		function atualizarNumeroPadroesPossiveis() {
+			let componente = document.getElementById('txtNumeroPadroesPossiveis');
+			let valor = numeroPadroesPossiveis();
+			componente.value = valor.toLocaleString();
+		}
+		
+		function numeroLigacoesPossiveis() {
+			return numeroPontos * (numeroPontos - 1) / 2;
+		}
+		
+		function atualizarNumeroLigacoesPossiveis() {
+			let componente = document.getElementById('txtNumeroLigacoesPossiveis');
+			let valor = numeroLigacoesPossiveis();
+			componente.value = valor.toLocaleString();
+		}
+		
+		function atualizarNumeros() {
+			atualizarNumeroLigacoesPossiveis();
+			atualizarNumeroPadroesPossiveis();
+		}
+		
+		function atualizarNumeroPontos() {
+			let componente = document.getElementById('txtNumeroPontos');
+			let valor = parseInt(componente.value);
+			if (!Number.isInteger(valor)) {
+				componente.value = NUMERO_INICIAL;
+				valor = NUMERO_INICIAL;
+			}
+			numeroPontos = valor;
+			atualizarNumeros();
+		}
+		
+		function atualizarNetwork() {
+			atualizarNumeroPontos();
+			criarNetwork();
+		}
+		
+		function criarDataSet(array) {
+			return new vis.DataSet(array);
+		}
+	
+		function criarNodes(quantidadeNodes) {
+			if (!quantidadeNodes) quantidadeNodes = NUMERO_INICIAL;
+			let retorno = [];
+			let index;
+			for(index = 1; index <= quantidadeNodes; index++) {
+				retorno[index - 1] = criarNode(index);
+			}
+			return retorno;
+		}
+		
+		function criarNode(id) {
+			return {id: id, label: id}
+		}
+		
+		function criarEdges(quantidadeNodes) {
+			if (!quantidadeNodes) quantidadeNodes = NUMERO_INICIAL;
+			let retorno = [];
+			let index = 0;
+			let indexFrom;
+			for(indexFrom = 1; indexFrom < quantidadeNodes; indexFrom++) {
+				let indexTo;
+				for(indexTo = indexFrom + 1; indexTo <= quantidadeNodes; indexTo++) {
+					retorno[index++] = criarEdge(indexFrom, indexTo);
+				}
+			}
+			return retorno;
+		}
+		
+		function criarEdge(idOrigem, idDestino) {
+			return {from: idOrigem, to: idDestino};
+		}
+		
+		function criarNetwork() {
+			let container = document.getElementById('mynetwork');
+			let data = {
+					nodes: criarDataSet(criarNodes(numeroPontos)),
+					edges: criarDataSet(criarEdges(numeroPontos))
+				};
+			let options = {};
+			let network = new vis.Network(container, data, options);
+		}
+		
+		atualizarNetwork();
+		
+	</script>
+	
+</body>
+
+</html>
